@@ -16,12 +16,24 @@ package com.github.pavradev.alexaskills.vasttrafik.handlers;
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.RequestHandler;
 import com.amazon.ask.model.Response;
+import com.github.pavradev.alexaskills.vasttrafik.client.VasttrafikClient;
+import com.github.pavradev.alexaskills.vasttrafik.client.model.Departure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 
 import static com.amazon.ask.request.Predicates.intentName;
 
 public class NextDepartureIntentHandler implements RequestHandler {
+    private static final Logger log = LoggerFactory.getLogger(NextDepartureIntentHandler.class);
+
+    public static final ZoneId SWEDEN_TIME_ZONE = ZoneId.of("GMT+2");
+
+    private VasttrafikClient vasttrafikClient = new VasttrafikClient();
 
     @Override
     public boolean canHandle(HandlerInput input) {
@@ -30,7 +42,20 @@ public class NextDepartureIntentHandler implements RequestHandler {
 
     @Override
     public Optional<Response> handle(HandlerInput input) {
-        String speechText = "Next departure is in 5 minutes";
+        String speechText;
+        try {
+            LocalDateTime now = LocalDateTime.now(SWEDEN_TIME_ZONE);
+            List<Departure> departures = vasttrafikClient.getNextDepartures(now);
+            if(departures == null || departures.isEmpty()) {
+                speechText = "Sorry, I could't get next departure time.";
+            } else {
+                LocalDateTime nextDeparture = departures.get(0).getRtDateTime();
+                log.info("Next departure: {}", nextDeparture);
+                speechText = "Next departure is in " + Duration.between(now, nextDeparture).toMinutes() + " minutes";
+            }
+        } catch (Exception e) {
+            speechText = "Sorry, I could't get next departure time.";
+        }
         return input.getResponseBuilder()
                 .withSpeech(speechText)
                 .withSimpleCard("Vasttrafik", speechText)
