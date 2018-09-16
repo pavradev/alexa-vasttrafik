@@ -1,0 +1,1 @@
+To build the sample, open a terminal and go to the directory containing pom.xml, and run 'mvn org.apache.maven.plugins:maven-assembly-plugin:2.6:assembly -DdescriptorId=jar-with-dependencies package'. This will generate a zip file named "vasttrafik-skill-1.0-jar-with-dependencies.jar" in the target directory.
