@@ -15,22 +15,28 @@ package com.github.pavradev.alexaskills.vasttrafik.handlers;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.RequestHandler;
-import com.amazon.ask.model.Response;
+import com.amazon.ask.model.*;
+import com.amazon.ask.model.dialog.DelegateDirective;
 import com.github.pavradev.alexaskills.vasttrafik.client.VasttrafikClient;
 import com.github.pavradev.alexaskills.vasttrafik.client.model.Departure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.*;
-import java.time.format.DateTimeFormatter;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.amazon.ask.request.Predicates.intentName;
 
 public class NextDepartureIntentHandler implements RequestHandler {
     private static final Logger log = LoggerFactory.getLogger(NextDepartureIntentHandler.class);
 
+    public static final String VEHICLE_TYPE_SLOT = "vehicleType";
+    public static final String VEHICLE_NUMBER_SLOT = "vehicleNumber";
     public static final ZoneId SWEDEN_TIME_ZONE = ZoneId.of("GMT+2");
 
     private VasttrafikClient vasttrafikClient = new VasttrafikClient();
@@ -42,17 +48,55 @@ public class NextDepartureIntentHandler implements RequestHandler {
 
     @Override
     public Optional<Response> handle(HandlerInput input) {
+        Request request = input.getRequestEnvelope().getRequest();
+        IntentRequest intentRequest = (IntentRequest) request;
+
+        Intent intent = intentRequest.getIntent();
+        log.info("Intent: {}", intent);
+
+        if (DialogState.STARTED == intentRequest.getDialogState()) {
+            // Pre-fill slots: update the intent object with slot values for which
+            // you have defaults, then return Dialog.Delegate with this updated intent
+            // in the updatedIntent property.
+            log.info("Started");
+            return input.getResponseBuilder()
+                    .addDelegateDirective(intent)
+                    .build();
+        }
+
+        if (DialogState.IN_PROGRESS == intentRequest.getDialogState()){
+            // return a Dialog.Delegate directive with no updatedIntent property.
+            log.info("In progress");
+            return input.getResponseBuilder()
+                    .addDelegateDirective(null)
+                    .build();
+        }
+
+        Map<String, Slot> slots = intent.getSlots();
+
+        // Get the vehicle number slot from the list of slots.
+        Slot vehicleTypeSlot = slots.get(VEHICLE_TYPE_SLOT);
+        Slot vehicleNumberSlot = slots.get(VEHICLE_NUMBER_SLOT);
+        log.info("Received next departure request for vehicle {} number {}", vehicleTypeSlot, vehicleNumberSlot);
+
+
         String speechText;
         try {
+            String vehicleNumber = vehicleNumberSlot.getValue();
+
             LocalDateTime now = LocalDateTime.now(SWEDEN_TIME_ZONE);
             List<Departure> departures = vasttrafikClient.getNextDepartures(now);
-            if(departures == null || departures.isEmpty()) {
-                speechText = "Sorry, I could't get next departure time.";
-            } else {
-                LocalDateTime nextDeparture = departures.get(0).getRtDateTime();
-                log.info("Next departure: {}", nextDeparture);
-                speechText = "Next departure is in " + Duration.between(now, nextDeparture).toMinutes() + " minutes";
+            List<Departure> departuresForVehicle = departures.stream()
+                    .filter(d -> vehicleNumber.equalsIgnoreCase(d.getSname()))
+                    .collect(Collectors.toList());
+            log.info("Found {} departures for vehicle {}", departuresForVehicle.size(), vehicleNumber);
+            if (departuresForVehicle.isEmpty()) {
+                throw new RuntimeException("No departures found");
             }
+
+            LocalDateTime nextDeparture = departuresForVehicle.get(0).getRtDateTime();
+            log.info("Next departure: {}", nextDeparture);
+            speechText = "Next departure is in " + Duration.between(now, nextDeparture).toMinutes() + " minutes";
         } catch (Exception e) {
             speechText = "Sorry, I could't get next departure time.";
         }

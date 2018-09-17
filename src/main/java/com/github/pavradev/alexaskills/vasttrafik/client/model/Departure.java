@@ -9,6 +9,12 @@ import java.time.LocalTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Departure {
+    String name;
+
+    String sname;
+
+    String type;
+
     @JsonFormat(pattern = "HH:mm")
     LocalTime time;
 
@@ -71,10 +77,37 @@ public class Departure {
         return LocalDateTime.of(this.getRtDate(), this.getRtTime());
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getSname() {
+        return sname;
+    }
+
+    public void setSname(String sname) {
+        this.sname = sname;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         return "Departure{" +
-                "time=" + time +
+                "name='" + name + '\'' +
+                ", sname='" + sname + '\'' +
+                ", type='" + type + '\'' +
+                ", time=" + time +
                 ", date=" + date +
                 ", rtTime=" + rtTime +
                 ", rtDate=" + rtDate +
