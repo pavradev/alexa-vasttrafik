@@ -34,11 +34,11 @@ public class VasttrafikClient {
     private static final String AUTH_URI = "https://api.vasttrafik.se/token";
     private static final String DEPARTURE_BOARD_URI = "https://api.vasttrafik.se/bin/rest.exe/v2/departureBoard?id=%s&date=%s&time=%s&format=json";
 
-    private static final String stopId = "9021014001900000";
-    private static final String vasttraficDevToken;
+    private static final String stopId = "9021014003640000"; //hardcoded Järntorget stop id
+    private static final String vasttrafikDevToken;
 
     static {
-        vasttraficDevToken = System.getenv("VASTTRAFIK_TOKEN");
+        vasttrafikDevToken = System.getenv("VASTTRAFIK_TOKEN");
     }
 
     private ObjectMapper objectMapper;
@@ -91,7 +91,7 @@ public class VasttrafikClient {
         HttpPost httpPost = new HttpPost(AUTH_URI);
         List<NameValuePair> formEntries = Collections.singletonList(new BasicNameValuePair("grant_type", "client_credentials"));
         httpPost.setEntity(new UrlEncodedFormEntity(formEntries));
-        httpPost.addHeader("Authorization", "Basic " + vasttraficDevToken);
+        httpPost.addHeader("Authorization", "Basic " + vasttrafikDevToken);
         httpPost.addHeader("Content-Type", "application/x-www-form-urlencoded");
         return httpPost;
     }

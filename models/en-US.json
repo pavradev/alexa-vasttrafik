@@ -1,0 +1,110 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "west traffic",
+      "intents": [
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "NextDepartureIntent",
+          "slots": [
+            {
+              "name": "vehicleType",
+              "type": "VASTTRAFIK_VEHICLE"
+            },
+            {
+              "name": "vehicleNumber",
+              "type": "AMAZON.NUMBER",
+              "samples": [
+                "{vehicleType} number {vehicleNumber}",
+                "{vehicleType} {vehicleNumber}",
+                "{vehicleNumber}"
+              ]
+            }
+          ],
+          "samples": [
+            "when is the next {vehicleType} number {vehicleNumber}",
+            "when is the next {vehicleType} {vehicleNumber}",
+            "how much time untill the next tram",
+            "when is the next bus",
+            "when is the next tram",
+            "next departure"
+          ]
+        }
+      ],
+      "types": [
+        {
+          "name": "VASTTRAFIK_VEHICLE",
+          "values": [
+            {
+              "name": {
+                "value": "tram"
+              }
+            },
+            {
+              "name": {
+                "value": "bus"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "dialog": {
+      "intents": [
+        {
+          "name": "NextDepartureIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "vehicleType",
+              "type": "VASTTRAFIK_VEHICLE",
+              "confirmationRequired": false,
+              "elicitationRequired": false,
+              "prompts": {}
+            },
+            {
+              "name": "vehicleNumber",
+              "type": "AMAZON.NUMBER",
+              "confirmationRequired": false,
+              "elicitationRequired": true,
+              "prompts": {
+                "elicitation": "Elicit.Slot.1410133355255.1329422645060"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "prompts": [
+      {
+        "id": "Elicit.Slot.1410133355255.1329422645060",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "which tram or bus number do you need?"
+          }
+        ]
+      }
+    ]
+  }
+}
